@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Segunda Oportunidad — Catálogo completo</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    :root {
+      --bg:#FAF6F0; --card:#F3EDE6; --accent:#C9A97C; --accent-2:#D6B88F;
+      --text:#2F2A28; --muted:#6B615D; --white:#fff;
+    }
+    * { box-sizing:border-box; margin:0; padding:0 }
+    body {
+      font-family:Inter, system-ui, Segoe UI, Roboto, Arial;
+      background:linear-gradient(180deg,var(--bg),#FFFDFB);
+      color:var(--text);
+      padding:24px;
+    }
+    .layout {
+      display:grid; grid-template-columns:240px 1fr 360px; gap:24px; max-width:1400px; margin:0 auto;
+    }
+    header {
+      grid-column:1/-1; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:20px;
+    }
+    .brand { display:flex; gap:14px; align-items:center }
+    .logo {
+      width:56px; height:56px; border-radius:12px;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      display:flex; align-items:center; justify-content:center;
+      color:var(--white); font-weight:700; font-size:18px;
+      box-shadow:0 8px 20px rgba(201,169,124,0.16);
+    }
+    nav { display:flex; gap:12px; flex-wrap:wrap }
+    .nav-button {
+      background:transparent; border:1px solid rgba(0,0,0,0.08);
+      padding:10px 14px; border-radius:10px;
+      font-size:14px; cursor:pointer; color:var(--text);
+      transition:all 220ms ease;
+    }
+    .nav-button:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,0.06) }
+
+    aside.left {
+      position:sticky; top:24px; height:fit-content;
+      background:#fff; padding:16px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.06);
+    }
+    .side-title { font-weight:700; margin-bottom:10px }
+    .side-link { display:block; padding:8px 10px; border-radius:8px; color:var(--text); text-decoration:none; margin-bottom:6px; }
+    .side-link:hover { background:#fff7ec }
+
+    .panel {
+      background:#fff; padding:16px; border-radius:12px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.04);
+      margin-top:20px;
+    }
+    .panel h3 { font-size:18px; margin-bottom:10px }
+    .summary { margin-bottom:10px }
+    .chip {
+      display:inline-block; padding:8px 12px; border-radius:10px;
+      background:#fff; margin-right:8px; color:var(--muted); font-size:13px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.04);
+    }
+
+    .tools { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px }
+    .tools input, .tools select {
+      padding:10px; border-radius:8px; border:1px solid #e6e0da; font-size:14px;
+    }
+
+    .product-card {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:18px; align-items:start; margin-bottom:18px;
+    }
+    .preview { height:300px; border-radius:12px; overflow:hidden; background:#f6f4f1 }
+    .preview img { width:100%; height:100%; object-fit:cover; display:block }
+    .gallery { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap }
+    .gallery img {
+      width:90px; height:64px; object-fit:cover;
+      border-radius:8px; cursor:pointer; border:2px solid transparent;
+      transition:all 180ms ease;
+    }
+    .gallery img.active { border-color:var(--accent-2); transform:translateY(-4px) }
+    .actions { display:flex; gap:10px; margin-top:14px }
+    .btn { padding:12px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:600; font-size:14px }
+    .btn.primary { background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:#fff }
+    .btn.ghost { background:transparent; border:1px solid rgba(0,0,0,0.06); color:var(--text) }
+    .muted { color:var(--muted); font-size:13px }
+
+    aside.right { display:flex; flex-direction:column; gap:18px }
+    .cart-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:10px; border-radius:10px;
+      background:linear-gradient(180deg,#fff,#fffaf3);
+      margin-bottom:10px;
+    }
+    .notice {
+      background:#fff3c4; padding:12px; border-radius:10px;
+      color:#6b4a00; margin-top:14px; font-size:14px;
+    }
+    #map { height:420px; border-radius:12px; margin-top:12px }
+
+    .footer { grid-column:1/-1; margin-top:18px; text-align:center; color:var(--muted); font-size:13px }
+
+    @media (max-width:1100px) {
+      .layout { grid-template-columns:1fr; }
+      aside.left { position:static }
+      .product-card { grid-template-columns:1fr }
+      .preview { height:220px }
+      #map { height:340px }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="brand">
+        <div class="logo">SO</div>
+        <div>
+          <h1>Segunda Oportunidad</h1>
+          <div class="muted">Moda curada, sostenible y accesible</div>
+        </div>
+      </div>
+      <nav>
+        <button class="nav-button" data-filter="all">Tienda ▾</button>
+        <button class="nav-button" data-filter="Botas">Botas</button>
+        <button class="nav-button" data-filter="Tacones">Tacones</button>
+        <button class="nav-button" data-filter="Zapatillas">Zapatillas</button>
+        <button class="nav-button" data-filter="Tenis">Tenis</button>
+        <button class="nav-button" data-filter="Zapatos">Zapatos</button>
+      </nav>
+    </header>
+
+    <!-- Menú lateral -->
+    <aside class="left">
+      <div class="side-title">Navegación rápida</div>
+      <a href="#cat-botas" class="side-link">Botas</a>
+      <a href="#cat-tacones" class="side-link">Tacones</a>
+      <a href="#cat-zapatillas" class="side-link">Zapatillas</a>
+      <a href="#cat-tenis" class="side-link">Tenis</a>
+      <a href="#cat-zapatos" class="side-link">Zapatos</a>
+      <a href="#mapa-uaslp" class="side-link">Ubicacion</a>
+
+      <div class="panel" style="margin-top:12px">
+        <h3>Buscador</h3>
+        <div class="tools">
+          <input id="search-name" type="text" placeholder="Buscar por nombre creativo…" />
+          <select id="search-category">
+            <option value="">Todas las categorías</option>
+            <option>Botas</option>
+            <option>Tacones</option>
+            <option>Zapatillas</option>
+            <option>Tenis</option>
+            <option>Zapatos</option>
+          </select>
+          <select id="search-size">
+            <option value="">Todas las tallas</option>
+            <option value="23">23</option>
+            <option value="24">24</option>
+            <option value="25">25</option>
+            <option value="26">26</option>
+            <option value="27">27</option>
+            <option value="36">36</option>
+            <option value="37">37</option>
+            <option value="38">38</option>
+            <option value="39">39</option>
+            <option value="40">40</option>
+            <option value="41">41</option>
+          </select>
+          <button id="clear-filters" class="btn ghost">Limpiar</button>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <section class="summary">
+        <h2>Cada par tiene una Segunda Oportunidad</h2>
+        <p>Calzado de segunda mano cuidadosamente seleccionado: calidad verificada, estética con personalidad y precios pensados para que gastar menos no signifique renunciar al estilo.</p>
+        <div>
+          <span class="chip">Curaduría profesional</span>
+          <span class="chip">Revisión y limpieza</span>
+          <span class="chip">Envíos confiables</span>
+        </div>
+      </section>
+
+      <!-- BOTAS -->
+      <div class="panel" data-category="Botas" id="cat-botas">
+        <h3>Botas</h3>
+
+        <!-- Botas negras de cuero (dos vistas) -->
+        <div class="product-card" data-id="b1" data-price="1299" data-category="Botas" data-sizes="36,37,38,39,40,41" data-title="Noches Vaqueras">
+          <div>
+            <div class="preview"><img src="imagenes/botas_cuero_negras.jpeg" alt="Noches Vaqueras" id="b1-main"></div>
+            <div class="gallery" id="b1-gallery">
+              <img src="imagenes/botas_cuero_negras.jpeg" alt="Noches Vaqueras vista 1" class="active" data-src="imagenes/botas_cuero_negras.jpeg">
+              <img src="imagenes/botas_cuero_negras2.jpeg" alt="Noches Vaqueras vista 2" data-src="imagenes/botas_cuero_negras2.jpeg">
+            </div>
+          </div>
+          <div>
+            <b>Noches Vaqueras</b>
+            <div class="muted" style="margin-top:8px">Condición: Excelente · Tallas: 36–41</div>
+            <div style="margin-top:8px;font-weight:800">MXN 1,299</div>
+            <div class="actions">
+              <button class="btn primary buy" data-id="b1">Comprar ahora</button>
+              <button class="btn ghost add" data-id="b1">Añadir al carrito</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Botas de cuero negro con estética vaquera y suela en gran estado.</div>
+          </div>
+        </div>
+
+        <!-- Botas café con tacón (dos vistas) -->
+        <div class="product-card" data-id="b3" data-price="1099" data-category="Botas" data-sizes="25,26,27" data-title="Terracota Elegante">
+          <div>
+            <div class="preview"><img src="imagenes/botas_cuero_cafe.jpeg" alt="Terracota Elegante" id="b3-main"></div>
+            <div class="gallery" id="b3-gallery">
+              <img src="imagenes/botas_cuero_cafe.jpeg" alt="Terracota Elegante vista 1" class="active" data-src="imagenes/botas_cuero_cafe.jpeg">
+              <img src="imagenes/botas_cuero_cafe2.jpeg" alt="Terracota Elegante vista 2" data-src="imagenes/botas_cuero_cafe2.jpeg">
+            </div>
+          </div>
+          <div>
+            <b>Terracota Elegante</b>
+            <div class="muted" style="margin-top:8px">Condición: Excelente · Tallas: 25–27</div>
+            <div style="margin-top:8px;font-weight:800">MXN 1,099</div>
+            <div class="actions">
+              <button class="btn primary buy" data-id="b3">Comprar ahora</button>
+              <button class="btn ghost add" data-id="b3">Añadir al carrito</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Punta estilizada y bordado decorativo con presencia clásica.</div>
+          </div>
+        </div>
+
+        <!-- Botas café con piedritas -->
+        <div class="product-card" data-id="b4" data-price="999" data-category="Botas" data-sizes="24,25,26" data-title="Café Estelar">
+          <div>
+            <div class="preview"><img src="imagenes/botas_cuero_cafe_piedritas.jpeg" alt="Café Estelar" id="b4-main"></div>
+            <div class="gallery" id="b4-gallery">
+              <img src="imagenes/botas_cuero_cafe_piedritas.jpeg" alt="Café Estelar vista 1" class="active" data-src="imagenes/botas_cuero_cafe_piedritas.jpeg">
+            </div>
+          </div>
+          <div>
+            <b>Café Estelar</b>
+            <div class="muted" style="margin-top:8px">Condición: Muy buena · Tallas: 24–26</div>
+            <div style="margin-top:8px;font-weight:800">MXN 999</div>
+            <div class="actions">
+              <button class="btn primary buy" data-id="b4">Comprar ahora</button>
+              <button class="btn ghost add" data-id="b4">Añadir al carrito</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Aplicaciones metálicas y bordado decorativo: presencia con carácter.</div>
+          </div>
+        </div>
+
+        <!-- Botas rosa -->
+        <div class="product-card" data-id="b5" data-price="1199" data-category="Botas" data-sizes="23,24,25" data-title="Rosa Ímpetu">
+          <div>
+            <div class="preview"><img src="imagenes/botas_cuero_rosa.jpeg" alt="Rosa Ímpetu" id="b5-main"></div>
+            <div class="gallery" id="b5-gallery">
+              <img src="imagenes/botas_cuero_rosa.jpeg" alt="Rosa Ímpetu vista 1" class="active" data-src="imagenes/botas_cuero_rosa.jpeg">
+            </div>
+          </div>
+          <div>
+            <b>Rosa Ímpetu</b>
+            <div class="muted" style="margin-top:8px">Condición: Nueva · Tallas: 23–25</div>
+            <div style="margin-top:8px;font-weight:800">MXN 1,199</div>
+            <div class="actions">
+              <button class="btn primary buy" data-id="b5">Comprar ahora</button>
+              <button class="btn ghost add" data-id="b5">Añadir al carrito</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Textura cocodrilo, tacón alto y cadena plateada. Audaces y únicas.</div>
+          </div>
+        </div>
+
+        <!-- Botas beige con punta negra -->
+        <div class="product-card" data-id="b6" data-price="1049" data-category="Botas" data-sizes="25,26,27" data-title="Desierto & Ébano">
+          <div>
+            <div class="preview"><img src="imagenes/botas_puntanegra_beige.jpeg" alt="Desierto & Ébano" id="b6-main"></div>
+            <div class="gallery" id="b6-gallery">
+              <img src="imagenes/botas_puntanegra_beige.jpeg" alt="Desierto & Ébano vista 1" class="active" data-src="imagenes/botas_puntanegra_beige.jpeg">
+            </div>
+          </div>
+          <div>
+            <b>Desierto & Ébano</b>
+            <div class="muted" style="margin-top:8px">Condición: Excelente · Tallas: 25–27</div>
+            <div style="margin-top:8px;font-weight:800">MXN 1,049</div>
+            <div class="actions">
+              <button class="btn primary buy" data-id="b6">Comprar ahora</button>
+              <button class="btn ghost add" data-id="b6">Añadir al carrito</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Bicolor con punta negra brillante y bordado decorativo.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TACONES -->
+      <div class="panel" data-category="Tacones" id="cat-tacones">
+        <h3>Tacones</h3>
+        <div class="product-card" data-id="t1" data-price="849" data-category="Tacones" data-sizes="23,24,25" data-title="Orquídea Blanca">
+          <div>
+            <div class="preview"><img src="imagenes/tacones_blancos.jpeg" alt="Orquídea Blanca" id="t1-main"></div>
+            <div class="gallery" id="t1-gallery">
+              <img src="imagenes/tacones_blancos.jpeg" alt="Orquídea Blanca imagen 1" class="active" data-src="imagenes/tacones_blancos.jpeg">
+            </div>
+          </div>
+          <div>
+            <b>Orquídea Blanca</b>
+            <div class="muted" style="margin-top:8px">Condición: Nueva · Tallas: 23–25</div>
+            <div style="margin-top:8px;font-weight:800">MXN 849</div>
+            <div class="actions">
+              <button class="btn primary buy" data-id="t1">Comprar ahora</button>
+              <button class="btn ghost add" data-id="t1">Añadir al carrito</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Flor decorativa y presentación artística. Delicados y elegantes.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ZAPATILLAS -->
+      <div class="panel" data-category="Zapatillas" id="cat-zapatillas">
+        <h3>Zapatillas</h3>
+        <div class="product-card" data-id="z1" data-price="799" data-category="Zapatillas" data-sizes="23,24,25" data-title="Furia Carmesí">
+          <div>
+            <div class="preview"><img src="imagenes/zapatillas_rojas.jpeg" alt="Furia Carmesí" id="z1-main"></div>
+            <div class="gallery" id="z1-gallery">
+              <img src="imagenes/zapatillas_rojas.jpeg" alt="Furia Carmesí imagen 1" class="active" data-src="imagenes/zapatillas_rojas.jpeg">
+              <img src="imagenes/zapatillas_rojas2.jpeg" alt="Furia Carmesí imagen 2" data-src="imagenes/zapatillas_rojas2.jpeg">
+            </div>
+          </div>
+          <div>
+            <b>Furia Carmesí</b>
+            <div class="muted" style="margin-top:8px">Condición: Excelente · Tallas: 23–25</div>
+            <div style="margin-top:8px;font-weight:800">MXN 799</div>
+            <div class="actions">
+              <button class="btn primary buy" data-id="z1">Comprar ahora</button>
+              <button class="btn ghost add" data-id="z1">Añadir al carrito</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Punta estilizada, hebillas metálicas y actitud audaz.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TENIS -->
+      <div class="panel" data-category="Tenis" id="cat-tenis">
+        <h3>Tenis</h3>
+
+        <!-- Tenis animal print (marrón) -->
+        <div class="product-card" data-id="t2" data-price="749" data-category="Tenis" data-sizes="24,25,26" data-title="Instinto Salvaje">
+          <div>
+            <div class="preview"><img src="imagenes/zapatos_animal.jpeg" alt="Instinto Salvaje" id="t2-main"></div>
+            <div class="gallery" id="t2-gallery">
+              <img src="imagenes/zapatos_animal.jpeg" alt="Instinto Salvaje imagen 1" class="active" data-src="imagenes/zapatos_animal.jpeg">
+            </div>
+          </div>
+          <div>
+            <b>Instinto Salvaje</b>
+            <div class="muted" style="margin-top:8px">Condición: Muy buena · Tallas: 24–26</div>
+            <div style="margin-top:8px;font-weight:800">MXN 749</div>
+            <div class="actions">
+              <button class="btn primary buy" data-id="t2">Comprar ahora</button>
+              <button class="btn ghost add" data-id="t2">Añadir al carrito</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Estampado tipo leopardo, suela blanca y diseño urbano.</div>
+          </div>
+        </div>
+
+        <!-- Tenis blanco y negro (dos vistas) -->
+        <div class="product-card" data-id="t3" data-price="699" data-category="Tenis" data-sizes="24,25,26" data-title="Contraste Animal">
+          <div>
+            <div class="preview"><img src="imagenes/zapatos_animal_vaca.jpeg" alt="Contraste Animal" id="t3-main"></div>
+            <div class="gallery" id="t3-gallery">
+              <img src="imagenes/zapatos_animal_vaca.jpeg" alt="Contraste Animal vista 1" class="active" data-src="imagenes/zapatos_animal_vaca.jpeg">
+              <img src="imagenes/zapatos_animal_vaca2.jpeg" alt="Contraste Animal vista 2" data-src="imagenes/zapatos_animal_vaca2.jpeg">
+            </div>
+          </div>
+          <div>
+            <b>Contraste Animal</b>
+            <div class="muted" style="margin-top:8px">Condición: Muy buena · Tallas: 24–26</div>
+            <div style="margin-top:8px;font-weight:800">MXN 699</div>
+            <div class="actions">
+              <button class="btn primary buy" data-id="t3">Comprar ahora</button>
+              <button class="btn ghost add" data-id="t3">Añadir al carrito</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Blanco y negro con presencia gráfica. Cómodos y versátiles.</div>
+          </div>
+        </div>
+
+        <!-- Tenis rojos con encaje -->
+        <div class="product-card" data-id="t4" data-price="729" data-category="Tenis" data-sizes="23,24,25" data-title="Encaje Escarlata">
+          <div>
+            <div class="preview"><img src="imagenes/zapatos_rojos_encaje.jpeg" alt="Encaje Escarlata" id="t4-main"></div>
+            <div class="gallery" id="t4-gallery">
+              <img src="imagenes/zapatos_rojos_encaje.jpeg" alt="Encaje Escarlata imagen 1" class="active" data-src="imagenes/zapatos_rojos_encaje.jpeg">
+            </div>
+          </div>
+          <div>
+            <b>Encaje Escarlata</b>
+            <div class="muted" style="margin-top:8px">Condición: Muy buena · Tallas: 23–25</div>
+            <div style="margin-top:8px;font-weight:800">MXN 729</div>
+            <div class="actions">
+              <button class="btn primary buy" data-id="t4">Comprar ahora</button>
+              <button class="btn ghost add" data-id="t4">Añadir al carrito</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Color vibrante con encaje blanco; delicados y con personalidad.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ZAPATOS -->
+      <div class="panel" data-category="Zapatos" id="cat-zapatos">
+        <h3>Zapatos</h3>
+        <div class="product-card" data-id="s1" data-price="689" data-category="Zapatos" data-sizes="25,26,27" data-title="Bruma Urbana">
+          <div>
+            <div class="preview"><img src="imagenes/zapatos_gris.jpeg" alt="Bruma Urbana" id="s1-main"></div>
+            <div class="gallery" id="s1-gallery">
+              <img src="imagenes/zapatos_gris.jpeg" alt="Bruma Urbana imagen 1" class="active" data-src="imagenes/zapatos_gris.jpeg">
+            </div>
+          </div>
+          <div>
+            <b>Bruma Urbana</b>
+            <div class="muted" style="margin-top:8px">Condición: Muy buena · Tallas: 25–27</div>
+            <div style="margin-top:8px;font-weight:800">MXN 689</div>
+            <div class="actions">
+              <button class="btn primary buy" data-id="s1">Comprar ahora</button>
+              <button class="btn ghost add" data-id="s1">Añadir al carrito</button>
+            </div>
+            <div class="muted" style="margin-top:10px">Grises con acentos azul claro: versátiles para el día a día.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mapa interactivo -->
+      <div class="panel" id="mapa-uaslp">
+        <h3> Visitamos y conócenos en Av. Parque Chapultepec 1570, San Luis Potosi</h3>
+        <div id="map"></div>
+      </div>
+    </main>
+
+    <!-- Sidebar derecha -->
+    <aside class="right">
+      <div class="panel">
+        <h3>Tu carrito</h3>
+        <div id="cart-items"><div class="cart-row" id="empty-note">Carrito vacío</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <div class="muted">Total</div>
+          <div id="cart-total" style="font-weight:800">MXN 0</div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button id="clear-cart" class="btn ghost">Vaciar</button>
+          <button id="checkout-cart" class="btn primary" disabled>Comprar carrito</button>
+        </div>
+        <div id="missing-warning" style="display:none" class="notice">Algunas imágenes no están disponibles. Verifica la carpeta <b>imagenes/</b> y los nombres de archivo.</div>
+      </div>
+
+      <div class="panel">
+        <h3>Suscríbete</h3>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="subscribe-email" type="email" placeholder="Tu correo electrónico" aria-label="Correo" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e0da" />
+          <button class="btn primary" id="subscribe-btn">Suscribirme</button>
+        </div>
+        <div id="subscribe-message" class="muted" style="margin-top:8px"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Información</h3>
+        <div class="muted">Envíos a todo México. Inspección y limpieza incluidas en cada pieza.</div>
+      </div>
+    </aside>
+
+    <div class="footer">Segunda Oportunidad — Profesional, accesible y sostenible</div>
+  </div>
+
+  <!-- Modal de checkout -->
+  <div id="modal-backdrop" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);z-index:90">
+    <div style="background:#fff;padding:16px;border-radius:8px;width:640px;max-width:94%">
+      <h3 style="margin-bottom:8px">Finalizar compra</h3>
+      <form id="checkout-form" onsubmit="return false" style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="field" style="flex:1;min-width:220px"><label class="muted">Nombre completo</label><input id="buyer-name" type="text" required></div>
+          <div class="field" style="flex:1;min-width:160px"><label class="muted">Teléfono</label><input id="buyer-phone" type="tel"></div>
+        </div>
+        <div class="field"><label class="muted">Correo electrónico</label><input id="buyer-email" type="email" required></div>
+        <div class="field"><label class="muted">Dirección de envío</label><input id="buyer-address" type="text" placeholder="Calle, número, colonia, ciudad, código postal" required></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="field" style="flex:1;min-width:160px">
+            <label class="muted">Método de envío</label>
+            <select id="shipping-method">
+              <option value="standard">Envío estándar</option>
+              <option value="express">Envío express</option>
+            </select>
+          </div>
+          <div class="field" style="flex:1;min-width:160px">
+            <label class="muted">Método de pago</label>
+            <select id="payment-method" required>
+              <option value="card">Tarjeta</option>
+              <option value="transfer">Transferencia</option>
+              <option value="pickup">Pago en tienda</option>
+            </select>
+            <div class="small-help">Los campos cambian según el método seleccionado.</div>
+          </div>
+        </div>
+        <div id="payment-card-fields" style="display:none;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div class="field" style="flex:2;min-width:160px"><label class="muted">Número de tarjeta</label><input id="card-number" type="text" inputmode="numeric" placeholder="1234 5678 9012 3456"></div>
+            <div class="field" style="flex:1;min-width:120px"><label class="muted">Expira (MM/AA)</label><input id="card-exp" type="text" placeholder="MM/AA"></div>
+            <div class="field" style="flex:1;min-width:100px"><label class="muted">CVV</label><input id="card-cvv" type="text" inputmode="numeric" placeholder="123"></div>
+          </div>
+          <div class="small-help">Datos simulados para demostración. Integra una pasarela en producción.</div>
+        </div>
+        <div id="payment-transfer-note" style="display:none;">
+          <div class="muted">Realiza la transferencia y envía el comprobante. Confirmaremos el pedido al recibir el pago.</div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button id="cancel-checkout" class="btn ghost" type="button">Cancelar</button>
+          <button id="confirm-checkout" class="btn primary" type="submit">Confirmar compra</button>
+        </div>
+        <div id="checkout-note" class="muted" style="display:none">Gracias por tu compra. Te enviaremos el comprobante y seguimiento al correo indicado.</div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Galerías: cambiar imagen principal al hacer clic en miniaturas
+    (function(){
+      document.querySelectorAll('.gallery').forEach(gallery=>{
+        const mainImg = gallery.previousElementSibling.querySelector('img');
+        gallery.addEventListener('click', e=>{
+          const img = e.target.closest('img');
+          if(!img) return;
+          const src = img.dataset.src || img.src;
+          mainImg.src = src;
+          gallery.querySelectorAll('img').forEach(i=>i.classList.remove('active'));
+          img.classList.add('active');
+        });
+      });
+    })();
+
+    // Carrito y acciones
+    (function(){
+      const cartItemsEl = document.getElementById('cart-items');
+      const cartTotalEl = document.getElementById('cart-total');
+      const clearBtn = document.getElementById('clear-cart');
+      const checkoutCartBtn = document.getElementById('checkout-cart');
+      const modal = document.getElementById('modal-backdrop');
+      const checkoutForm = document.getElementById('checkout-form');
+      const cancelCheckout = document.getElementById('cancel-checkout');
+      const confirmCheckout = document.getElementById('confirm-checkout');
+      const checkoutNote = document.getElementById('checkout-note');
+      const paymentSelect = document.getElementById('payment-method');
+      const cardFields = document.getElementById('payment-card-fields');
+      const transferNote = document.getElementById('payment-transfer-note');
+
+      let cart = {};
+      function formatMXN(n){ return 'MXN ' + Number(n).toLocaleString('es-MX'); }
+
+      function updateCartUI(){
+        cartItemsEl.innerHTML = '';
+        const keys = Object.keys(cart);
+        if(keys.length === 0){
+          cartItemsEl.innerHTML = '<div class="cart-row" id="empty-note">Carrito vacío</div>';
+          cartTotalEl.textContent = 'MXN 0';
+          checkoutCartBtn.disabled = true;
+          return;
+        }
+        let total = 0;
+        keys.forEach(k=>{
+          const it = cart[k];
+          total += it.price * it.qty;
+          const div = document.createElement('div');
+          div.className = 'cart-row';
+          div.innerHTML = '<div><strong>'+it.title+'</strong><div class="muted">'+it.qty+' × '+formatMXN(it.price)+'</div></div><div style="text-align:right"><div style="font-weight:800">'+formatMXN(it.price*it.qty)+'</div></div>';
+          cartItemsEl.appendChild(div);
+        });
+        cartTotalEl.textContent = formatMXN(total);
+        checkoutCartBtn.disabled = false;
+      }
+
+      function addToCart(id, title, price){
+        if(!cart[id]) cart[id] = {id, title, price, qty:0};
+        cart[id].qty += 1;
+        updateCartUI();
+      }
+
+      // Acciones para múltiples botones
+      document.querySelectorAll('.add').forEach(addBtn=>{
+        addBtn.addEventListener('click', ()=>{
+          const id = addBtn.dataset.id;
+          const card = document.querySelector('[data-id="'+id+'"]');
+          const price = Number(card.dataset.price || 0);
+          const title = card.querySelector('b').textContent;
+          addToCart(id,title,price);
+        });
+      });
+
+      document.querySelectorAll('.buy').forEach(buyBtn=>{
+        buyBtn.addEventListener('click', ()=>{
+          const id = buyBtn.dataset.id;
+          const card = document.querySelector('[data-id="'+id+'"]');
+          const price = Number(card.dataset.price || 0);
+          const title = card.querySelector('b').textContent;
+          addToCart(id,title,price);
+          openModal();
+        });
+      });
+
+      clearBtn.addEventListener('click', ()=>{ cart = {}; updateCartUI(); });
+      checkoutCartBtn.addEventListener('click', openModal);
+
+      function openModal(){ modal.style.display='flex'; checkoutNote.style.display='none'; document.getElementById('buyer-name').focus(); }
+      function closeModal(){ modal.style.display='none'; checkoutForm.reset(); cardFields.style.display='none'; transferNote.style.display='none'; }
+
+      cancelCheckout.addEventListener('click', closeModal);
+
+      function handlePaymentMethodChange(){
+        const m = paymentSelect.value;
+        if(m === 'card'){ cardFields.style.display = 'block'; transferNote.style.display = 'none'; }
+        else if(m === 'transfer'){ cardFields.style.display = 'none'; transferNote.style.display = 'block'; }
+        else { cardFields.style.display = 'none'; transferNote.style.display = 'none'; }
+      }
+      paymentSelect.addEventListener('change', handlePaymentMethodChange);
+      handlePaymentMethodChange();
+
+      function validateCardFields(){
+        if(paymentSelect.value !== 'card') return true;
+        const num = document.getElementById('card-number').value.replace(/\s/g,'');
+        const exp = document.getElementById('card-exp').value.trim();
+        const cvv = document.getElementById('card-cvv').value.trim();
+        if(!/^\d{13,19}$/.test(num)) return false;
+        if(!/^\d{2}\/\d{2}$/.test(exp)) return false;
+        if(!/^\d{3,4}$/.test(cvv)) return false;
+        return true;
+      }
+
+      checkoutForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        const name = document.getElementById('buyer-name').value.trim();
+        const email = document.getElementById('buyer-email').value.trim();
+        const address = document.getElementById('buyer-address').value.trim();
+        if(!name || !email || !address) { alert('Completa nombre, correo y dirección.'); return; }
+        if(!validateCardFields()){ alert('Revisa los datos de la tarjeta: número 13–19 dígitos, Expira MM/AA, CVV 3–4 dígitos.'); return; }
+
+        confirmCheckout.disabled = true;
+        confirmCheckout.textContent = 'Procesando…';
+        setTimeout(()=>{
+          confirmCheckout.disabled = false;
+          confirmCheckout.textContent = 'Confirmar compra';
+          checkoutNote.style.display = 'block';
+          cart = {}; updateCartUI();
+          setTimeout(closeModal, 1000);
+        }, 900);
+      });
+
+      const modalBackdrop = document.getElementById('modal-backdrop');
+      modalBackdrop.addEventListener('click', (e)=>{ if(e.target === modalBackdrop) closeModal(); });
+
+      document.getElementById('subscribe-btn').addEventListener('click', ()=>{
+        const input = document.getElementById('subscribe-email');
+        const msg = document.getElementById('subscribe-message');
+        const email = (input.value || '').trim();
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if(!email){ msg.textContent = 'Introduce tu correo.'; return; }
+        if(!re.test(email)){ msg.textContent = 'Correo inválido.'; return; }
+        const btn = document.getElementById('subscribe-btn');
+        btn.disabled = true; btn.textContent = 'Registrando…';
+        setTimeout(()=>{ btn.disabled = false; btn.textContent = 'Suscribirme'; msg.textContent = 'Gracias. Te añadimos a novedades.'; input.value=''; },700);
+      });
+
+      // Verificación de imágenes requeridas
+      (function(){
+        const required = [
+          // Botas negras (dos vistas)
+          'imagenes/botas_cuero_negras.jpeg',
+          'imagenes/botas_cuero_negras2.jpeg',
+          // Botas café (dos vistas)
+          'imagenes/botas_cuero_cafe.jpeg',
+          'imagenes/botas_cuero_cafe2.jpeg',
+          // Botas café con piedritas
+          'imagenes/botas_cuero_cafe_piedritas.jpeg',
+          // Botas rosa
+          'imagenes/botas_cuero_rosa.jpeg',
+          // Botas beige con punta negra
+          'imagenes/botas_puntanegra_beige.jpeg',
+          // Tacones blancos
+          'imagenes/tacones_blancos.jpeg',
+          // Zapatillas rojas (dos vistas)
+          'imagenes/zapatillas_rojas.jpeg',
+          'imagenes/zapatillas_rojas2.jpeg',
+          // Tenis animal print marrón
+          'imagenes/zapatos_animal.jpeg',
+          // Tenis blanco y negro (dos vistas)
+          'imagenes/zapatos_animal_vaca.jpeg',
+          'imagenes/zapatos_animal_vaca2.jpeg',
+          // Tenis rojos con encaje
+          'imagenes/zapatos_rojos_encaje.jpeg',
+          // Zapatos grises
+          'imagenes/zapatos_gris.jpeg'
+        ];
+        const missing = [];
+        const placeholder = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="520"><rect width="100%" height="100%" fill="%23FAF6F0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236B615D" font-family="Arial" font-size="20">Imagen no disponible</text></svg>';
+        function check(src){ return new Promise(r=>{ const i=new Image(); i.onload=()=>r(true); i.onerror=()=>r(false); i.src=src; }); }
+        (async function(){
+          for(const s of required){ const ok = await check(s); if(!ok) missing.push(s); }
+          if(missing.length){
+            document.querySelectorAll('img').forEach(img=>{
+              const s = img.getAttribute('src') || '';
+              missing.forEach(m=>{ if(s === m || s.endsWith('/'+m.split('/').pop())){ img.src = placeholder; img.alt = 'Imagen no disponible'; } });
+            });
+            const warn = document.getElementById('missing-warning');
+            if(warn) warn.style.display = 'block';
+          }
+        })();
+      })();
+
+      // Filtro por categoría en la navbar
+      (function(){
+        const buttons = document.querySelectorAll('nav .nav-button[data-filter]');
+        const panels = document.querySelectorAll('[data-category]');
+        buttons.forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            const f = btn.dataset.filter;
+            panels.forEach(p=>{
+              if(f === 'all' || p.dataset.category === f){ p.style.display = ''; }
+              else { p.style.display = 'none'; }
+            });
+            window.scrollTo({ top: document.querySelector('main').offsetTop, behavior: 'smooth' });
+          });
+        });
+      })();
+
+      // Buscador por nombre creativo, categoría y talla
+      (function(){
+        const qName = document.getElementById('search-name');
+        const qCat = document.getElementById('search-category');
+        const qSize = document.getElementById('search-size');
+        const clear = document.getElementById('clear-filters');
+        const cards = Array.from(document.querySelectorAll('.product-card'));
+
+        function apply(){
+          const name = (qName.value || '').trim().toLowerCase();
+          const cat = qCat.value || '';
+          const size = qSize.value || '';
+          cards.forEach(c=>{
+            const title = (c.dataset.title || '').toLowerCase();
+            const category = c.dataset.category || '';
+            const sizes = (c.dataset.sizes || '').split(',');
+            const matchName = !name || title.includes(name);
+            const matchCat = !cat || category === cat;
+            const matchSize = !size || sizes.includes(size);
+            c.style.display = (matchName && matchCat && matchSize) ? '' : 'none';
+          });
+          // Mostrar panel contenedor solo si tiene al menos una card visible
+          document.querySelectorAll('.panel[data-category]').forEach(panel=>{
+            const visibleCards = panel.querySelectorAll('.product-card:not([style*="display: none"])');
+            panel.style.display = visibleCards.length ? '' : 'none';
+          });
+        }
+
+        [qName, qCat, qSize].forEach(el=>el.addEventListener('input', apply));
+        clear.addEventListener('click', ()=>{
+          qName.value = ''; qCat.value = ''; qSize.value = ''; apply();
+        });
+        apply();
+      })();
+    })();
+
+    // Mapa interactivo — UASLP
+    (function(){
+      const mapEl = document.getElementById('map');
+      if(!mapEl) return;
+      const center = [22.119412284720152, -101.01701437289049];
+      const map = L.map('map', { scrollWheelZoom: true }).setView(center, 20);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(map);
+
+      const pois = [
+        { name:'Entrada principal', desc:'Acceso sobre Av. Parque Chapultepec', coord:[22.11911974504492, -101.01696971690245] },
+        { name:'Edificio 3, Torre', desc:'Aulas, laboratorios, secretaria escolar y academica', coord:[22.119561483772372, -101.01812571307383] },
+        { name:'Instituto de Física', desc:'Prácticas e investigación', coord:[22.1190999316401, -101.01798625948905] },
+        { name:'Cafeteria', desc:'Descanso y area de comida', coord:[22.119556308365794, -101.01796042035643] },
+        { name:'Edificio 1', desc:'Aulas, biblioteca, cancha 1 y  area administrativa', coord:[22.119199633238118, -101.01750333783608] },
+        { name:'Edificio 2', desc:'Cubiculos de profesores y laboratorios', coord:[22.11962606354823, -101.0177893073532] },
+        { name:'Departamento Universitario de ingles', desc:'Centro de idiomas pedregal', coord:[22.119285049639625, -101.01771198232593] },
+        { name:'Cancha 2', desc:'Zonas de convivencia', coord:[22.11875389688875, -101.01888901303855] },
+        { name:'Entrada para vehiculos', desc:'Acceso vehicular', coord:[22.11966640965885, -101.01746412066991] },
+        { name:'Estacionamiento', desc:'Area de estacionamiento', coord:[22.119151466402542, -101.01899630138841] }
+      ];
+
+      pois.forEach(p => {
+        L.marker(p.coord).addTo(map).bindPopup('<b>' + p.name + '</b><br>' + p.desc);
+      });
+
+      const bounds = L.latLngBounds(pois.map(p => p.coord));
+      map.fitBounds(bounds.pad(0.01));
+    })();
+  </script>
+</body>
+</html>
